@@ -6,7 +6,7 @@ import deburr from 'lodash.deburr';
 
 
 function getPrNumber(): number | undefined {
-    const pullRequest = github.context.payload.pull_request; 
+    const pullRequest = github.context.payload.pull_request;
     if (!pullRequest) {
         return undefined;
     }
@@ -44,6 +44,10 @@ async function getChangedFiles(
     }
 }
 
+function isMPSFile(name: string): boolean {
+    return name.endsWith(".mps") || name.endsWith(".mpsr") || name.endsWith(".model") || name.endsWith(".mpl") || name.endsWith(".msd")
+}
+
 async function run() {
     try {
         const token = core.getInput("repo-token", { required: true });
@@ -74,22 +78,10 @@ async function run() {
         core.debug(`fetching changed files for pr #${prNumber}`);
         const changedFiles: string[] = await getChangedFiles(client, prNumber);
 
-        const filePerModel = new Minimatch("**\.mps");
-        const filePerRoot = new Minimatch("**\.mpsr");
-        const filePerRootMetadata = new Minimatch("**\.model");
-        const languageFile = new Minimatch("**\.mpl");
-        const solutionFile = new Minimatch("**\.msd");
-
-        const matchers = [filePerModel, filePerRoot, filePerRootMetadata, languageFile, solutionFile];
-
-
         var matched = false;
         for (const file of changedFiles) {
-            for (const matcher of matchers) {
-                if (!matched) {
-                    matched = matcher.match(file)
-                }
-            }
+            core.debug(`file: ${file}`)
+            matched = isMPSFile(file)
             if (matched) { break; }
         }
 
