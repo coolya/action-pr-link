@@ -1,7 +1,7 @@
 name: 'Modelix URL'
 description: 'Adds a link to the current diff on your modelix instance to every pull request.'
-icon: link
-color: blue
+icon: 'link'
+color: 'blue'
 inputs:
     repo-token:
       description: 'The GITHUB_TOKEN secret'
