@@ -44,12 +44,6 @@ async function getChangedFiles(
     }
 }
 
-
-function cleanLabel(label: Readonly<string>): string {
-    return deburr(label.toLowerCase());
-}
-
-
 async function run() {
     try {
         const token = core.getInput("repo-token", { required: true });
