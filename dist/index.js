@@ -1552,7 +1552,7 @@ function run() {
                 core.warning("Could not get pull request number from context, exiting");
                 return;
             }
-            const isNewOrCoreUpdate = github.context.eventName === "synchronize" || github.context.eventName === "opened" || github.context.eventName === "reopened";
+            const isNewOrCoreUpdate = github.context.action === "synchronize" || github.context.action === "opened" || github.context.action === "reopened";
             if (!isNewOrCoreUpdate) {
                 core.info("Code in the pull request wasn't updated. Skipping!");
                 return;
