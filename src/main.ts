@@ -56,6 +56,9 @@ async function run() {
 
         const isNewOrCoreUpdate = github.context.action === "synchronize" || github.context.action === "opened" || github.context.action === "reopened"
 
+        core.warning(`github.context.action = ${github.context.action}` );
+        core.warning(`github.context.eventName = ${github.context.eventName}` );
+        
         if (!isNewOrCoreUpdate) {
             core.info("Code in the pull request wasn't updated. Skipping!");
             return;
