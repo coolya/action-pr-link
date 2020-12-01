@@ -2,10 +2,11 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { GitHub } from "@actions/github/lib/utils";
 import { Minimatch, IMinimatch } from "minimatch";
+import deburr from 'lodash.deburr';
 
 
 function getPrNumber(): number | undefined {
-    const pullRequest = github.context.payload.pull_request;
+    const pullRequest = github.context.payload.pull_request; 
     if (!pullRequest) {
         return undefined;
     }
@@ -41,17 +42,32 @@ async function getChangedFiles(
         const nextBatch = await getChangedFiles(client, prNumber, page + 1)
         return changedFiles.concat(nextBatch)
     }
-
 }
+
+
+function cleanLabel(label: Readonly<string>): string {
+    return deburr(label.toLowerCase());
+}
+
 
 async function run() {
     try {
         const token = core.getInput("repo-token", { required: true });
+        const modelixUrl = core.getInput("modelix-url", { required: true });
+        const label = core.getInput('label', { required: true });
         const prNumber = getPrNumber();
         if (!prNumber) {
             core.warning("Could not get pull request number from context, exiting");
             return;
         }
+
+        const isNewOrCoreUpdate = github.context.eventName === "synchronize" || github.context.eventName === "opened" || github.context.eventName === "reopened"
+
+        if (!isNewOrCoreUpdate) {
+            core.info("Code in the pull request wasn't updated. Skipping!");
+            return;
+        }
+
         const client = github.getOctokit(token);
         const { data: pullRequest } = await client.pulls.get({
             owner: github.context.repo.owner,
@@ -59,8 +75,13 @@ async function run() {
             pull_number: prNumber
         });
 
-        if(pullRequest.state == "closed") {
+        if (pullRequest.state == "closed") {
             core.info(`pull request #${prNumber} is closed. Skipping.`)
+            return;
+        }
+
+        if (pullRequest.locked) {
+            core.info(`pull request #${prNumber} is locked. Skipping.`)
             return;
         }
 
@@ -79,30 +100,39 @@ async function run() {
         var matched = false;
         for (const file of changedFiles) {
             for (const matcher of matchers) {
-                if(!matched){
+                if (!matched) {
                     matched = matcher.match(file)
                 }
             }
             if (matched) { break; }
         }
 
-
-
-        if (matched) {
-            core.debug("matched")
-            client.issues.createComment({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                issue_number: prNumber,
-                body: ""
-            })
+        if (!matched) {
+            core.info("no MPS related files changed in this PR. Skipping!");
+            return;
         }
 
+        core.debug("matched")
 
+        if (!!pullRequest.labels.find(it => cleanLabel(it.name!) === cleanLabel(label))) {
+            core.info(`pull request already labeled. Skipping!`)
+            return;
+        }
+        const base = pullRequest.base.sha;
+        const head = pullRequest.head.sha;
+        const diffUrl = `${modelixUrl}/github/${github.context.repo.owner}/${github.context.repo.repo}/diff/${base}/${head}`
 
+        await client.issues.createComment({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            issue_number: prNumber,
+            body: `You can view the diff at: ${diffUrl}`
+        });
 
     } catch (error) {
         core.error(error);
         core.setFailed(error.message);
     }
 }
+
+run();
