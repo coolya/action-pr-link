@@ -93,13 +93,13 @@ async function run() {
         core.debug("matched")
         const base = pullRequest.base.sha;
         const head = pullRequest.head.sha;
-        const diffUrl = `${modelixUrl}/github/${github.context.repo.owner}/${github.context.repo.repo}/diff/${base}/${head}`
+        const diffUrl = `${modelixUrl}/github/${github.context.repo.owner}/${github.context.repo.repo}/diff/${base}/${head}/`
 
         await client.issues.createComment({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             issue_number: prNumber,
-            body: `You can view the diff at: ${diffUrl}`
+            body: `You can view the modelix diff [here](${diffUrl})`
         });
 
     } catch (error) {
