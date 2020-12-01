@@ -1,0 +1,10 @@
+name: 'Add modelix diff url'
+inputs:
+    repo-token:
+      description: 'The GITHUB_TOKEN secret'
+    modelix-url:
+      description: 'Root url of the modelix instance running the diff service.'
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

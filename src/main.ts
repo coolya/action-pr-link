@@ -54,7 +54,6 @@ async function run() {
     try {
         const token = core.getInput("repo-token", { required: true });
         const modelixUrl = core.getInput("modelix-url", { required: true });
-        const label = core.getInput('label', { required: true });
         const prNumber = getPrNumber();
         if (!prNumber) {
             core.warning("Could not get pull request number from context, exiting");
@@ -113,11 +112,6 @@ async function run() {
         }
 
         core.debug("matched")
-
-        if (!!pullRequest.labels.find(it => cleanLabel(it.name!) === cleanLabel(label))) {
-            core.info(`pull request already labeled. Skipping!`)
-            return;
-        }
         const base = pullRequest.base.sha;
         const head = pullRequest.head.sha;
         const diffUrl = `${modelixUrl}/github/${github.context.repo.owner}/${github.context.repo.repo}/diff/${base}/${head}`
