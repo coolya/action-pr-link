@@ -1,5 +1,7 @@
 # Modelix Diffs in Pull Requests
 
+**Modelix does not longer provide the functionality used by this action and the project has been archived.**
+
 Posts likes to the current diff of a pull request pointing to your modelix instance and updates the links on changes
 in the pull request. 
 
